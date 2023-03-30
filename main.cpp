@@ -7,25 +7,23 @@
 #include "render/renderer.cpp"
 #include "player/player.cpp"
 #include "render/lights.cpp"
+#include "world/collision.cpp"
 
 Camera3D camera;
 Renderer renderer;
 Player player;
 LightManager light_manager;
 
-std::vector<BoundingBox> collision_map;
+CollisionMap collision_map;
 
 Vector3 fogColor = {0.7f, 0.5f, 0.5f};
 
 float r = 0;
 
 int main(void) {
-    collision_map.push_back({{1, -1, 1}, {-1, -7, -1}});
-    collision_map.push_back({{-10, -1, 0.6f}, {-0.6f, -7, -0.6f}});
-
     // Initialise the renderer
     renderer = Renderer(
-        {800, 500},
+        {800, 800},
         "Crypt 3D",
         BLACK,
         0
@@ -35,6 +33,9 @@ int main(void) {
 
     // Initialise the player
     player = Player({0, 10, 0.1});
+
+    // Create the collision map
+    collision_map = CollisionMap("resources/world/collision/start.cmap");
     
     // Load the world texture map
     Texture2D texmap = LoadTexture("resources/textures/texmap.png");
@@ -97,7 +98,7 @@ int main(void) {
                 DrawBoundingBox(player.bounds, ORANGE);
 
                 player.grounded = false;
-                for(BoundingBox box : collision_map) {
+                for(BoundingBox box : collision_map.bounds) {
                     DrawBoundingBox(box, RED);
                     if(CheckCollisionBoxes(box, player.feet)) {
                         player.grounded = true;
@@ -114,6 +115,8 @@ int main(void) {
             }
 
             EndMode3D();
+
+            collision_map = CollisionMap("resources/world/collision/start.cmap");
         }
         renderer.StopRender();
     }

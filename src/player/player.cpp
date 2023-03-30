@@ -10,7 +10,7 @@ class Player {
     float deltat;
 
     public:
-    float gravity = 0;//0.1f;
+    float gravity = 0.1f;
     float friction = 10;
     float jump = 5;
     float speed = 1;
@@ -41,7 +41,7 @@ class Player {
         };
         bounds = {
             {position.x - 0.2f, position.y, position.z - 0.2f},
-            {position.x + 0.2f, position.y + 1, position.z + 0.2f}
+            {position.x + 0.2f, position.y + 1.2f, position.z + 0.2f}
         };
 
         deltat = GetFrameTime();
