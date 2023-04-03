@@ -21,7 +21,8 @@ Vector3 fogColor = {0.7f, 0.5f, 0.5f};
 float r = 0;
 
 int main(void) {
-    collision_map.push_back({{-1, 0, -1}, {1, 2, 1}});
+    collision_map.push_back({{-1, -7, -1}, {1, -1, 1}});
+    collision_map.push_back({{-0.6f, -7, -0.6f}, {-10, -1, 0.6f}});
 
     // Initialise the renderer
     renderer = Renderer(
@@ -30,6 +31,8 @@ int main(void) {
         BLACK,
         0
     );
+
+    SetTargetFPS(120);
 
     // Initialise the player
     player = Player({0, 10, 0.1});
@@ -76,25 +79,14 @@ int main(void) {
         {0, 20, 0}
     );
 
-    // Init the camera
-    float zoom = 10;
-    camera = {0};
-    camera.position = (Vector3){ 0.0f, 10.0f, 10.0f };  // Camera position
-    camera.target = (Vector3){ 0.0f, 0.0f, 0.0f };      // Camera looking at point
-    camera.up = (Vector3){ 0.0f, 1.0f, 0.0f };          // Camera up vector (rotation towards target)
-    camera.fovy = 45.0f;                                // Camera field-of-view Y
-    camera.projection = CAMERA_PERSPECTIVE;             // Camera mode type
-
     Model model = LoadModel("resources/models/start_room.obj");
     model.materials[0].shader = shader;                     // Set shader effect to 3d model
     model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = texmap;
 
     while(!WindowShouldClose()) {
-        camera.position.x = sin(r) * zoom;
-        camera.position.z = cos(r) * zoom;
-        camera.position.y = zoom;
+        player.Update();
 
-        SetShaderValue(shader, shader.locs[SHADER_LOC_VECTOR_VIEW], &camera.position, SHADER_UNIFORM_VEC3);
+        SetShaderValue(shader, shader.locs[SHADER_LOC_VECTOR_VIEW], &player.position, SHADER_UNIFORM_VEC3);
 
         renderer.BeginRender();
         {
@@ -102,27 +94,29 @@ int main(void) {
 
             BeginMode3D(player.camera); 
             {
+                DrawBoundingBox(player.feet, GREEN);
+                DrawBoundingBox(player.bounds, ORANGE);
+
+                player.grounded = false;
                 for(BoundingBox box : collision_map) {
                     DrawBoundingBox(box, RED);
+                    if(CheckCollisionBoxes(box, player.feet)) {
+                        player.grounded = true;
+                        if(box.max.y > box.min.y)
+                            player.position.y = box.max.y + 0.101f;
+                        else
+                            player.position.y = box.min.y + 0.101f;
+                    }
+                    if(CheckCollisionBoxes(box, player.bounds))
+                        player.OnCollide(box);
                 }
+                
                 DrawModel(model, {0,-5,0}, 1, WHITE);
             }
 
             EndMode3D();
         }
         renderer.StopRender();
-
-        if(IsKeyDown(KEY_LEFT))
-            r -= 2.0f * GetFrameTime();
-        if(IsKeyDown(KEY_RIGHT))
-            r += 2.0f * GetFrameTime();
-
-        if(IsKeyDown(KEY_UP))
-            zoom -= 2.0f * GetFrameTime();
-        if(IsKeyDown(KEY_DOWN))
-            zoom += 2.0f * GetFrameTime();
-
-        player.Update();
     }
 
     renderer.Close();

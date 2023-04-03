@@ -25,6 +25,8 @@ class Renderer {
         SetConfigFlags(config);
         InitWindow(resolution.x, resolution.y, title);
 
+        DisableCursor();
+
         this->width = resolution.x;
         this->height = resolution.y;
         
@@ -81,6 +83,7 @@ class Renderer {
     }
 
     void Close() {
+        EnableCursor();
         UnloadRenderTexture(render);
         CloseWindow();
     }

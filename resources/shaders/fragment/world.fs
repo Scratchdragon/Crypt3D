@@ -41,7 +41,7 @@ void main() {
     vec2 coord = mod(fragTexCoord / texscale, texsize) 
                  + (floor(uvCoord / gridsize) * gridsize);
     vec3 color = texture2D(texture0, coord).rgb;
-    float fogMix = 1.0/pow(distance(view, fragPosition) / 10.0, 2.0);
+    float fogMix = 1.0/pow(distance(view, fragPosition) / 6.0, 2.0);
 
     // Calculate final fragment color
     gl_FragColor = vec4(
