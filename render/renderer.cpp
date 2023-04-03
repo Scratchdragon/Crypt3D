@@ -16,9 +16,12 @@ class Renderer {
 
     // The main render texture
     RenderTexture2D render;
+
+    // The background color
+    Color background;
     
     // Main constructor
-    Renderer(Vector2 resolution, const char * title, unsigned int config) {
+    Renderer(Vector2 resolution, const char * title, Color bg, unsigned int config) {
         SetConfigFlags(config);
         InitWindow(resolution.x, resolution.y, title);
 
@@ -28,6 +31,8 @@ class Renderer {
         render = LoadRenderTexture(width, height);
 
         this->veiwport = {0, 0, resolution.x, resolution.y};
+
+        this->background = bg;
     }
     // Null constructor
     Renderer() {}
@@ -45,7 +50,7 @@ class Renderer {
         }
         
         BeginTextureMode(render);
-        ClearBackground(BLACK);
+        ClearBackground(background);
     }
 
     void StopRender() {

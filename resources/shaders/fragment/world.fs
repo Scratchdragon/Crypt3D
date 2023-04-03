@@ -7,19 +7,44 @@ varying vec2 fragTexCoord;
 varying vec2 uvCoord;
 varying vec3 fragPosition;
 
-// Input uniform values
+// Uniform texture samples
 uniform sampler2D texture0;
 
+// Tiling uniforms
 uniform float texsize;
 uniform float texscale;
 uniform float gridsize;
 
+// Fog uniforms
+uniform vec3 view;
+uniform vec3 fogColor;
+
+// Define the light struct
+struct Light {
+    float active;
+    float brightness;
+    vec3 position;
+};
+
+// Lighting uniforms
+uniform Light lights[255];
+uniform int light_count;
+
 void main() {
+    // Lighting
+    float light = 0.0;
+    for(int i = 0; i < light_count; ++i) {
+        light += (1.0 / distance(fragPosition, lights[i].position)) * lights[i].brightness * lights[i].active;
+    }
+
+    // Texture map
     vec2 coord = mod(fragTexCoord / texscale, texsize) 
                  + (floor(uvCoord / gridsize) * gridsize);
-    
     vec3 color = texture2D(texture0, coord).rgb;
+    float fogMix = 1.0/pow(distance(view, fragPosition) / 10.0, 2.0);
 
     // Calculate final fragment color
-    gl_FragColor = vec4(color, 1.0f);
+    gl_FragColor = vec4(
+        mix(fogColor, color, clamp(fogMix, 0.0, 1.0)) * light, 1.0
+    );
 }

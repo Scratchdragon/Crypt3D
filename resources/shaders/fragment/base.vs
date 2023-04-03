@@ -8,6 +8,7 @@ attribute vec4 vertexColor;
 
 // Input uniform v alues
 uniform mat4 mvp;
+uniform mat4 matModel;
 
 // Output vertex attributes (to fragment shader)
 varying vec2 fragTexCoord;
@@ -31,9 +32,9 @@ void main() {
         );
     }
 
-    fragPosition = vertexPosition;
+    fragPosition = vec3(matModel * vec4(vertexPosition, 1.0));;
     uvCoord = vertexTexCoord;
 
     // Calculate final vertex position
-    gl_Position = mvp*vec4(vertexPosition, 1.0);
+    gl_Position = mvp * vec4(vertexPosition, 1.0f);
 }
