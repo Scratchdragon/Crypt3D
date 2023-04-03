@@ -5,12 +5,14 @@
 class Player {
     public:
     float gravity = 0.03;
-    float friction = 5;
+    float friction = 10;
+    float jump = 5;
+    float speed = 0.1;
 
     Vector3 position;
     Vector3 velocity = {0, 0, 0};
     Camera3D camera;
-    Vector2 rotation;
+    Vector2 rotation = {0, 0};
 
     Player(Vector3 position) {
         this->position = position;
@@ -36,7 +38,7 @@ class Player {
             rotation.y = -PI/2.1;
 
         position.x += velocity.x;
-        //position.y += velocity.y;
+        position.y += velocity.y;
         position.z += velocity.z;
 
         velocity.x /= 1 + deltat * friction;
@@ -50,21 +52,27 @@ class Player {
 
         // Controls
         if(IsKeyDown(KEY_W)) {
-            velocity.x += 0.1 * sinf(rotation.x) * deltat;
-            velocity.z += 0.1 * cosf(rotation.x) * deltat;
+            velocity.x += speed * sinf(rotation.x) * deltat;
+            velocity.z += speed * cosf(rotation.x) * deltat;
         }
         if(IsKeyDown(KEY_S)) {
-            velocity.x -= 0.1 * sinf(rotation.x) * deltat;
-            velocity.z -= 0.1 * cosf(rotation.x) * deltat;
+            velocity.x -= speed * sinf(rotation.x) * deltat;
+            velocity.z -= speed * cosf(rotation.x) * deltat;
         }
         if(IsKeyDown(KEY_A)) {
-            velocity.x += 0.1 * sinf(rotation.x + 1) * deltat;
-            velocity.z += 0.1 * cosf(rotation.x + 1) * deltat;
+            velocity.x += speed * sinf(rotation.x + PI/2.0) * deltat;
+            velocity.z += speed * cosf(rotation.x + PI/2.0) * deltat;
         }
         if(IsKeyDown(KEY_D)) {
-            velocity.x -= 0.1 * sinf(rotation.x + 1) * deltat;
-            velocity.z -= 0.1 * cosf(rotation.x + 1) * deltat;
+            velocity.x -= speed * sinf(rotation.x + PI/2.0) * deltat;
+            velocity.z -= speed * cosf(rotation.x + PI/2.0) * deltat;
         }
+
+        if(IsKeyDown(KEY_SPACE) && velocity.y == 0)
+            velocity.y = jump * deltat;
+        
+        friction = velocity.y == 0 ? 10 : 0;
+        speed = velocity.y == 0 ? 0.1 : 0.005;
     }
 };
 

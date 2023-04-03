@@ -2,6 +2,7 @@
 
 #include <raylib.h>
 #include <math.h>
+#include <vector>
 
 #include "render/renderer.cpp"
 #include "render/world.cpp"
@@ -13,11 +14,15 @@ Renderer renderer;
 Player player;
 LightManager light_manager;
 
+std::vector<BoundingBox> collision_map;
+
 Vector3 fogColor = {0.7f, 0.5f, 0.5f};
 
 float r = 0;
 
 int main(void) {
+    collision_map.push_back({{-1, 0, -1}, {1, 2, 1}});
+
     // Initialise the renderer
     renderer = Renderer(
         {800, 500},
@@ -97,6 +102,9 @@ int main(void) {
 
             BeginMode3D(player.camera); 
             {
+                for(BoundingBox box : collision_map) {
+                    DrawBoundingBox(box, RED);
+                }
                 DrawModel(model, {0,-5,0}, 1, WHITE);
             }
 
