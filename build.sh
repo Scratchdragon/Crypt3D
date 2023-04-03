@@ -1,1 +1,1 @@
-g++ main.cpp -o main -lraylib
+g++ main.cpp -o main -lraylib -lpthread -ldl -I/$(pwd)/src

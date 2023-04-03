@@ -5,7 +5,6 @@
 #include <vector>
 
 #include "render/renderer.cpp"
-#include "render/world.cpp"
 #include "player/player.cpp"
 #include "render/lights.cpp"
 
@@ -21,8 +20,8 @@ Vector3 fogColor = {0.7f, 0.5f, 0.5f};
 float r = 0;
 
 int main(void) {
-    collision_map.push_back({{-1, -7, -1}, {1, -1, 1}});
-    collision_map.push_back({{-0.6f, -7, -0.6f}, {-10, -1, 0.6f}});
+    collision_map.push_back({{1, -1, 1}, {-1, -7, -1}});
+    collision_map.push_back({{-10, -1, 0.6f}, {-0.6f, -7, -0.6f}});
 
     // Initialise the renderer
     renderer = Renderer(

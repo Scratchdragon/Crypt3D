@@ -1,5 +1,3 @@
-#ifndef LightManager
-
 // Simple lighting system
 #include <raylib.h>
 
@@ -80,5 +78,3 @@ class LightManager {
         }
     }
 };
-
-#endif

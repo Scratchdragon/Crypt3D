@@ -1,4 +1,3 @@
-#ifndef Player
 #include <raylib.h>
 #include <math.h>
 
@@ -11,7 +10,7 @@ class Player {
     float deltat;
 
     public:
-    float gravity = 0.1f;
+    float gravity = 0;//0.1f;
     float friction = 10;
     float jump = 5;
     float speed = 1;
@@ -99,5 +98,3 @@ class Player {
         position.z -= velocity.z * deltat;
     }
 };
-
-#endif

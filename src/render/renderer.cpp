@@ -1,5 +1,3 @@
-#ifndef Renderer
-
 #include <raylib.h>
 
 class Renderer {
@@ -88,5 +86,3 @@ class Renderer {
         CloseWindow();
     }
 };
-
-#endif
