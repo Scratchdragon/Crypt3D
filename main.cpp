@@ -23,7 +23,7 @@ float r = 0;
 int main(void) {
     // Initialise the renderer
     renderer = Renderer(
-        {800, 800},
+        {900, 500},
         "Crypt 3D",
         BLACK,
         0

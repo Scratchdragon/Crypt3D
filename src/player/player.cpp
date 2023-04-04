@@ -89,7 +89,7 @@ class Player {
 
         velocity.y -= gravity;
         
-        friction = grounded ? 0.1 : 0;
+        friction = grounded ? 0.1 : 0.01;
         speed = grounded ? 0.4 : 0.04;
     }
 
