@@ -107,11 +107,22 @@ int main(void) {
                         else
                             player.position.y = box.min.y + 0.101f;
                     }
-                    if(CheckCollisionBoxes(box, player.bounds))
+                    else if(CheckCollisionBoxes(box, player.bounds))
                         player.OnCollide(box);
+                }
+
+                if(CheckWallCollision(player.bounds, {{1, -1, -1}, {5, 2, 3}}, 200)) {
+                    player.OnCollide(GetWallCollide(
+                        player.bounds, {{1, -1, -1}, {5, 2, 3}}, 200
+                    ));
                 }
                 
                 DrawModel(model, {0,-5,0}, 1, WHITE);
+
+                DrawBoundingWall(
+                    {{1, -1, -1}, {5, 2, 3}},
+                    RED
+                );
             }
 
             EndMode3D();

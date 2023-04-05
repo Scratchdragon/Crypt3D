@@ -17,7 +17,7 @@ class Player {
 
     bool grounded;
 
-    Vector3 position;
+    Vector3 position, last_pos;
     Vector3 velocity = {0, 0, 0};
     Camera3D camera;
     Vector2 rotation = {0, 0};
@@ -45,7 +45,12 @@ class Player {
         };
 
         deltat = GetFrameTime();
-        
+
+        if(IsKeyDown(KEY_SPACE) && grounded)
+            velocity.y = jump;
+        else if(grounded)
+            velocity.y = 0;
+
         // Controls
         if(IsKeyDown(KEY_W)) {
             velocity.x += speed * sinf(rotation.x);
@@ -64,11 +69,6 @@ class Player {
             velocity.z -= speed * cosf(rotation.x + PI/2.0);
         }
 
-        if(IsKeyDown(KEY_SPACE) && grounded)
-            velocity.y = jump;
-        else if(grounded)
-            velocity.y = 0;
-
         this->camera.position = {position.x, position.y + 1, position.z};
         this->camera.target = {position.x + sinf(rotation.x) * cos(rotation.y), position.y + 1 + sin(rotation.y), position.z + cosf(rotation.x) * cos(rotation.y)};
 
@@ -83,6 +83,8 @@ class Player {
         velocity.x /= 1 + friction;
         velocity.z /= 1 + friction;
 
+        last_pos = position;
+
         position.x += velocity.x * deltat;
         position.y += velocity.y * deltat;
         position.z += velocity.z * deltat;
@@ -94,7 +96,17 @@ class Player {
     }
 
     void OnCollide(BoundingBox box) {
-        position.x -= velocity.x * deltat;
-        position.z -= velocity.z * deltat;
+        // The center of the box (x and z only)
+        Vector2 center = {(box.min.x + box.max.x) / 2.0f, (box.min.z + box.max.z) / 2.0f};
+   
+        Vector2 gradient = {-center.x + position.x, -center.y + position.z};
+        float angle = atanf(gradient.y / gradient.x); // tan-1(rise/run) == angle
+        float d = sqrtf( (velocity.x * velocity.x) + (velocity.z * velocity.z) );
+
+        DrawLine3D(position, {
+            position.x + cos(angle) * d,
+            position.y,
+            position.z + sin(angle) * d
+        }, GREEN);
     }
 };
