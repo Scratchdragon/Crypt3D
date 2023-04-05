@@ -104,9 +104,9 @@ class Player {
         float d = sqrtf( (velocity.x * velocity.x) + (velocity.z * velocity.z) );
 
         DrawLine3D(position, {
-            position.x + cos(angle) * d,
+            position.x + cosf(angle) * d,
             position.y,
-            position.z + sin(angle) * d
+            position.z + sinf(angle) * d
         }, GREEN);
     }
 };
