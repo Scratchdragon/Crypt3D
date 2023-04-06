@@ -3,6 +3,8 @@
 
 #include <iostream>
 
+#define DEBUG false
+
 using namespace std;
 
 class Player {
@@ -31,6 +33,8 @@ class Player {
         this->camera.up = (Vector3){ 0.0f, 1.0f, 0.0f };
         this->camera.fovy = 45.0f;
         this->camera.projection = CAMERA_PERSPECTIVE;
+
+        if(DEBUG) gravity = 0;
     }
     Player(){}
 
@@ -68,6 +72,9 @@ class Player {
             velocity.x -= speed * sinf(rotation.x + PI/2.0);
             velocity.z -= speed * cosf(rotation.x + PI/2.0);
         }
+        if(IsKeyDown(KEY_LEFT_SHIFT)) {
+            velocity.y -= speed;
+        }
 
         this->camera.position = {position.x, position.y + 1, position.z};
         this->camera.target = {position.x + sinf(rotation.x) * cos(rotation.y), position.y + 1 + sin(rotation.y), position.z + cosf(rotation.x) * cos(rotation.y)};
@@ -82,6 +89,11 @@ class Player {
 
         velocity.x /= 1 + friction;
         velocity.z /= 1 + friction;
+        if(DEBUG) {
+            velocity.y /= 1 + friction;
+            if(IsKeyDown(KEY_SPACE))
+                velocity.y += speed;
+        };
 
         last_pos = position;
 
@@ -91,11 +103,13 @@ class Player {
 
         velocity.y -= gravity;
         
-        friction = grounded ? 0.1 : 0.01;
-        speed = grounded ? 0.4 : 0.04;
+        friction = grounded ? 0.15 : 0.01;
+        speed = grounded ? 0.7 : 0.04;
     }
 
     void OnCollide(BoundingBox box) {
+        if(DEBUG) return;
+
         // The center of the box (x and z only)
         Vector2 center = {(box.min.x + box.max.x) / 2.0f, (box.min.z + box.max.z) / 2.0f};
    

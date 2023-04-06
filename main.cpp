@@ -90,16 +90,18 @@ int main(void) {
 
         renderer.BeginRender();
         {
-            DrawFPS(0, 0);
-
             BeginMode3D(player.camera); 
             {
-                DrawBoundingBox(player.feet, GREEN);
-                DrawBoundingBox(player.bounds, ORANGE);
+                DrawModel(model, {0,-5,0}, 1, WHITE);
 
                 player.grounded = false;
                 for(GenericBounds b : collision_map.bounds) {
-                    DrawGenericBounds(b, RED);
+                    // Don't check if far away
+                    if(Distance(ExcludeY(player.position), ExcludeY(GetCenter(b))) > Distance(ExcludeY(b.min), ExcludeY(b.max))) continue;
+
+                    // Draw wireframe if in debug mode
+                    if(DEBUG) DrawGenericBounds(b, RED);
+
                     if(CheckCollisionBounds(player.feet, b)) {
                         player.grounded = true;
                         if(b.max.y > b.min.y)
@@ -117,14 +119,26 @@ int main(void) {
                     }
                 }
                 
-                DrawModel(model, {0,-5,0}, 1, WHITE);
+                
             }
 
             EndMode3D();
 
-            collision_map = CollisionMap("resources/world/collision/start.cmap");
+            DrawText(
+                (to_string(int(player.position.x*100)) + ", " + to_string(int(player.position.y*100)) + ", " + to_string(int(player.position.z*100))).c_str(),
+                0,
+                30,
+                20,
+                WHITE
+            );
+
+            DrawFPS(0, 0);
+
         }
         renderer.StopRender();
+        
+        if(IsKeyDown(KEY_F1))
+            collision_map = CollisionMap("resources/world/collision/start.cmap");
     }
 
     renderer.Close();

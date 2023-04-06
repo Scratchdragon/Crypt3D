@@ -24,6 +24,11 @@ Vector3 Vec3FromString(std::string str) {
     };
 }
 
+// Get position excluding vertical component
+inline Vector2 ExcludeY(Vector3 position) {
+    return {position.x, position.z};
+}
+
 float Distance(Vector3 a, Vector3 b) {
     // √ (x2−x1)^2 + (y2−y1)^2 + (z2−z1)^2
     return sqrtf((a.x-b.x)*(a.x-b.x) + (a.y-b.y)*(a.y-b.y) + (a.z-b.z)*(a.z-b.z));
@@ -85,40 +90,18 @@ void DrawGenericBounds(GenericBounds bounds, Color color) {
     DrawBoundingWall({bounds.min, bounds.max}, color);
 }
 
-bool CheckWallCollision(BoundingBox a, BoundingWall b, float accuracy) {
-	if(b.min.z == b.max.z || b.min.x == b.max.x)
-		return CheckCollisionBoxes(a, {b.min, b.max});
-
-	float dz = ((b.max.z - b.min.z)/(b.max.x - b.min.x));
-	for(float d = 0; d < 1; d+=1/accuracy) {
-		float x = d*b.max.x;
-
-		BoundingBox slice = {
-			{b.min.x + x, b.min.y, b.min.z + x*dz}, 
-			{b.min.x + x, b.max.y, b.min.z + x*dz}
-		};
-        DrawBoundingBox(slice, ORANGE);
-		
-		if(CheckCollisionBoxes(a, slice))
-			return true;
-	}
-	return false;
-}
-
 bool CheckWallCollision(BoundingBox a, BoundingWall b) {
-    float accuracy = COLLISION_DEPTH / Distance(GetCenter(a), GetCenter(b));
 	if(b.min.z == b.max.z || b.min.x == b.max.x)
 		return CheckCollisionBoxes(a, {b.min, b.max});
 
 	float dz = ((b.max.z - b.min.z)/(b.max.x - b.min.x));
-	for(float d = 0; d < 1; d+=1/accuracy) {
-		float x = d*b.max.x;
+	for(float d = 0; d < 1; d+=1/COLLISION_DEPTH) {
+		float x = d*(b.max.x-b.min.x);
 
 		BoundingBox slice = {
 			{b.min.x + x, b.min.y, b.min.z + x*dz}, 
 			{b.min.x + x, b.max.y, b.min.z + x*dz}
 		};
-        DrawBoundingBox(slice, ORANGE);
 		
 		if(CheckCollisionBoxes(a, slice))
 			return true;
@@ -133,14 +116,13 @@ BoundingBox GetWallCollide(BoundingBox a, BoundingWall b) {
     }
 
 	float dz = ((b.max.z - b.min.z)/(b.max.x - b.min.x));
-	for(float d = 0; d < 1; d+=1/(COLLISION_DEPTH / Distance(GetCenter(a), GetCenter(b)))) {
-		float x = d*b.max.x;
+	for(float d = 0; d < 1; d+=1/COLLISION_DEPTH) {
+		float x = d*(b.max.x-b.min.x);
 
 		BoundingBox slice = {
 			{b.min.x + x, b.min.y, b.min.z + x*dz}, 
 			{b.min.x + x, b.max.y, b.min.z + x*dz}
 		};
-        DrawBoundingBox(slice, ORANGE);
 		
 		if(CheckCollisionBoxes(a, slice))
 			return slice;
@@ -153,29 +135,29 @@ bool CheckCollisionBounds(BoundingBox a, GenericBounds b) {
         return CheckCollisionBoxes(a, {b.min, b.max});
     return CheckWallCollision(
         a,
-        {b.min, b.max},
-        COLLISION_DEPTH / Distance(GetCenter(a), GetCenter(b))
+        {b.min, b.max}
     );
 }
 
 // Ensures that the values of "max" in the bounding box is bigger than "min"
 GenericBounds OrderBounds(GenericBounds b) {
-    if(b.type == 1)
-        return b;
-
     int min; // The smaller of the two measurements
-    if(b.min.x > b.max.x) {
-        // Swap the x values
-        min = b.max.x;
-        b.max.x = b.min.x;
-        b.min.x = min;
-    }
     if(b.min.y > b.max.y) {
         // Swap the y values
         min = b.max.y;
         b.max.y = b.min.y;
         b.min.y = min;
     }
+
+    if(b.type == 1) return b;
+
+    if(b.min.x > b.max.x) {
+        // Swap the x values
+        min = b.max.x;
+        b.max.x = b.min.x;
+        b.min.x = min;
+    }
+    
     if(b.min.z > b.max.z) {
         // Swap the z values
         min = b.max.z;
@@ -257,8 +239,6 @@ class CollisionMap {
                 Vec3FromString(max),
                 type
             };
-
-            cout << bounds.min.x << ", " << bounds.min.y << ", " << bounds.min.z << "  :  "<< bounds.max.x << ", " << bounds.max.y << ", " << bounds.max.z << endl;
 
             // Finally, add the box
             AddBounds(bounds);
