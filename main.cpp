@@ -98,31 +98,26 @@ int main(void) {
                 DrawBoundingBox(player.bounds, ORANGE);
 
                 player.grounded = false;
-                for(BoundingBox box : collision_map.bounds) {
-                    DrawBoundingBox(box, RED);
-                    if(CheckCollisionBoxes(box, player.feet)) {
+                for(GenericBounds b : collision_map.bounds) {
+                    DrawGenericBounds(b, RED);
+                    if(CheckCollisionBounds(player.feet, b)) {
                         player.grounded = true;
-                        if(box.max.y > box.min.y)
-                            player.position.y = box.max.y + 0.101f;
+                        if(b.max.y > b.min.y)
+                            player.position.y = b.max.y + 0.101f;
                         else
-                            player.position.y = box.min.y + 0.101f;
+                            player.position.y = b.min.y + 0.101f;
                     }
-                    else if(CheckCollisionBoxes(box, player.bounds))
-                        player.OnCollide(box);
-                }
-
-                if(CheckWallCollision(player.bounds, {{1, -1, -1}, {5, 2, 3}}, 200)) {
-                    player.OnCollide(GetWallCollide(
-                        player.bounds, {{1, -1, -1}, {5, 2, 3}}, 200
-                    ));
+                    else if(CheckCollisionBounds(player.bounds, b)) {
+                        if(b.type == 1)
+                            player.OnCollide(GetWallCollide(
+                                player.bounds, {b.min, b.max}
+                            ));
+                        else
+                            player.OnCollide({b.min, b.max});
+                    }
                 }
                 
                 DrawModel(model, {0,-5,0}, 1, WHITE);
-
-                DrawBoundingWall(
-                    {{1, -1, -1}, {5, 2, 3}},
-                    RED
-                );
             }
 
             EndMode3D();

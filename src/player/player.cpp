@@ -36,8 +36,8 @@ class Player {
 
     void Update() {
         feet = {
-            {position.x - 0.19f, position.y - 0.1f, position.z - 0.19f},
-            {position.x + 0.19f, position.y, position.z + 0.19f}
+            {position.x - 0.15f, position.y - 0.1f, position.z - 0.15f},
+            {position.x + 0.15f, position.y, position.z + 0.15f}
         };
         bounds = {
             {position.x - 0.2f, position.y, position.z - 0.2f},
@@ -99,14 +99,18 @@ class Player {
         // The center of the box (x and z only)
         Vector2 center = {(box.min.x + box.max.x) / 2.0f, (box.min.z + box.max.z) / 2.0f};
    
-        Vector2 gradient = {-center.x + position.x, -center.y + position.z};
-        float angle = atanf(gradient.y / gradient.x); // tan-1(rise/run) == angle
-        float d = sqrtf( (velocity.x * velocity.x) + (velocity.z * velocity.z) );
+        // Calculate the direction away from the wall and the net velocity
+        float angle = atan2f(-center.y + position.z, -center.x + position.x); // tan-1(rise/run) == angle
+        float v = sqrtf((velocity.x * velocity.x) + (velocity.z * velocity.z)); // Total directional velocity
 
-        DrawLine3D(position, {
-            position.x + cosf(angle) * d,
-            position.y,
-            position.z + sinf(angle) * d
-        }, GREEN);
+        // Move in the calculated direction
+        position.x += cosf(angle) * v * deltat;
+        position.z += sinf(angle) * v * deltat;
+
+        velocity = {
+            (cosf(angle) * v + velocity.x) / 2.0f,
+            velocity.y,
+            (sinf(angle) * v + velocity.z) / 2.0f
+        };
     }
 };
