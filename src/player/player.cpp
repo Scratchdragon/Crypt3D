@@ -7,6 +7,10 @@
 
 using namespace std;
 
+float lerp(float a, float b, float f) {
+    return a * (1.0 - f) + (b * f);
+}
+
 class Player {
     private:
     float deltat;
@@ -24,6 +28,9 @@ class Player {
     Camera3D camera;
     Vector2 rotation = {0, 0};
 
+    Vector2 gun_rotation;
+    Vector3 gun_position;
+
     BoundingBox feet;
     BoundingBox bounds;
 
@@ -31,7 +38,7 @@ class Player {
         this->position = position;
         this->camera = {0};
         this->camera.up = (Vector3){ 0.0f, 1.0f, 0.0f };
-        this->camera.fovy = 45.0f;
+        this->camera.fovy = 60.0f;
         this->camera.projection = CAMERA_PERSPECTIVE;
 
         if(DEBUG) gravity = 0;
@@ -79,6 +86,17 @@ class Player {
         this->camera.position = {position.x, position.y + 1, position.z};
         this->camera.target = {position.x + sinf(rotation.x) * cos(rotation.y), position.y + 1 + sin(rotation.y), position.z + cosf(rotation.x) * cos(rotation.y)};
 
+        gun_position = {
+            camera.target.x + sin(rotation.y) * 0.4f * sin(rotation.x),
+            camera.target.y - cos(rotation.y) * 0.4f,
+            camera.target.z + sin(rotation.y) * 0.4f * cos(rotation.x)
+        };
+
+        gun_rotation = {
+            lerp(gun_rotation.x, rotation.x - (PI/2), deltat / 10 + 0.5), 
+            lerp(gun_rotation.y, rotation.y, deltat / 10 + 0.5)
+        };
+
         rotation.x -= GetMouseDelta().x / 100;
         rotation.y -= GetMouseDelta().y / 100;
         
@@ -105,6 +123,9 @@ class Player {
         
         friction = grounded ? 0.15 : 0.01;
         speed = grounded ? 0.7 : 0.04;
+
+        if(position.y < -7)
+            position = {0, 5, 0};
     }
 
     void OnCollide(BoundingBox box) {

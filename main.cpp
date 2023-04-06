@@ -1,6 +1,8 @@
 #define GLSL_VERSION 100
 
 #include <raylib.h>
+#include <raymath.h>
+
 #include <math.h>
 #include <vector>
 
@@ -17,13 +19,14 @@ LightManager light_manager;
 CollisionMap collision_map;
 
 Vector3 fogColor = {0.7f, 0.5f, 0.5f};
+float fogAmount = 0;
 
 float r = 0;
 
 int main(void) {
     // Initialise the renderer
     renderer = Renderer(
-        {900, 500},
+        {1920, 1080},
         "Crypt 3D",
         BLACK,
         0
@@ -60,17 +63,19 @@ int main(void) {
     int gridsize_loc = GetShaderLocation(shader, "gridsize");
     int texscale_loc = GetShaderLocation(shader, "texscale");
     int fogcolor_loc = GetShaderLocation(shader, "fogColor");
+    int fogamount_loc = GetShaderLocation(shader, "fogAmount");
 
     // Initial shader value set
     SetShaderValue(shader, texsize_loc, &texsize, SHADER_UNIFORM_FLOAT);
     SetShaderValue(shader, gridsize_loc, &gridsize, SHADER_UNIFORM_FLOAT);
     SetShaderValue(shader, texscale_loc, &texscale, SHADER_UNIFORM_FLOAT);
     SetShaderValue(shader, fogcolor_loc, &fogColor, SHADER_UNIFORM_VEC3);
+    SetShaderValue(shader, fogamount_loc, &fogAmount, SHADER_UNIFORM_FLOAT);
 
     // Initialise the lights manager
     light_manager = LightManager(&shader);
     light_manager.CreateLight(
-        1,
+        1.5,
         {0, 0, 0}
     );
 
@@ -79,9 +84,18 @@ int main(void) {
         {0, 20, 0}
     );
 
+    light_manager.CreateLight(
+        -1.5,
+        {0, -8, 0}
+    );
+
     Model model = LoadModel("resources/models/start_room.obj");
     model.materials[0].shader = shader;                     // Set shader effect to 3d model
     model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = texmap;
+
+    Model gun = LoadModel("resources/models/rifle.obj");
+    gun.materials[0].shader = shader;
+    gun.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = texmap;
 
     while(!WindowShouldClose()) {
         player.Update();
@@ -92,6 +106,9 @@ int main(void) {
         {
             BeginMode3D(player.camera); 
             {
+                gun.transform = MatrixRotateXYZ((Vector3){0, player.gun_rotation.x, player.gun_rotation.y});
+                DrawModel(gun, player.gun_position, 0.2, WHITE);
+
                 DrawModel(model, {0,-5,0}, 1, WHITE);
 
                 player.grounded = false;
@@ -120,6 +137,7 @@ int main(void) {
                 }
                 
                 
+
             }
 
             EndMode3D();
