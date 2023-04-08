@@ -3,7 +3,6 @@
 
 struct Light {
     char index;
-    int shader_locs[3];
 
     float active = 0;
     Vector3 position;
@@ -11,17 +10,13 @@ struct Light {
 };
 
 class LightManager {
-    private:
-    int light_count_loc;
-
     public:
     int light_count = 0;
     Light lights[255];
-    Shader * shader;
+    Renderer * renderer;
 
-    LightManager(Shader * shader) {
-        this->shader = shader;
-        this->light_count_loc = GetShaderLocation(*shader, "light_count");
+    LightManager(Renderer * renderer) {
+        this->renderer = renderer;
     }
     LightManager(){}
 
@@ -30,22 +25,19 @@ class LightManager {
         Light light = lights[index];
 
         // Pass all the light data to the shader
-        SetShaderValue(
-            *shader, 
-            light.shader_locs[0], 
-            &light.active, 
+        renderer->SetAllShaderVal(
+            TextFormat("lights[%i].active", light.index),
+            &light.active,
             SHADER_UNIFORM_FLOAT
         );
-        SetShaderValue(
-            *shader, 
-            light.shader_locs[1], 
-            &light.brightness, 
+        renderer->SetAllShaderVal(
+            TextFormat("lights[%i].brightness", light.index),
+            &light.brightness,
             SHADER_UNIFORM_FLOAT
         );
-        SetShaderValue(
-            *shader, 
-            light.shader_locs[2], 
-            &light.position, 
+        renderer->SetAllShaderVal(
+            TextFormat("lights[%i].position", light.index),
+            &light.position,
             SHADER_UNIFORM_VEC3
         );
     }
@@ -58,15 +50,10 @@ class LightManager {
         light.position = position;
         light.index = light_count;
 
-        // Get the shader locs
-        light.shader_locs[0] = GetShaderLocation(*shader, TextFormat("lights[%i].active", light.index));
-        light.shader_locs[1] = GetShaderLocation(*shader, TextFormat("lights[%i].brightness", light.index));
-        light.shader_locs[2] = GetShaderLocation(*shader, TextFormat("lights[%i].position", light.index));
-
-        // Assign the light and inform the shader
+        // Assign the light and inform the shaders
         lights[light_count] = light;
         ++light_count;
-        SetShaderValue(*shader, light_count_loc, &light_count, SHADER_UNIFORM_INT);
+        renderer->SetAllShaderVal("lightc", &light_count, SHADER_UNIFORM_INT);
 
         // Initial update
         UpdateLight(light_count - 1);

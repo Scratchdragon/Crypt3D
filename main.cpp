@@ -11,6 +11,11 @@
 #include "render/lights.cpp"
 #include "world/collision.cpp"
 
+// Constant shader macros
+#define SHADER_COUNT 2
+#define WORLD_SHADER 0
+#define MODEL_SHADER 1
+
 Camera3D camera;
 Renderer renderer;
 Player player;
@@ -29,6 +34,7 @@ int main(void) {
         {1920, 1080},
         "Crypt 3D",
         BLACK,
+        SHADER_COUNT,
         0
     );
 
@@ -44,39 +50,32 @@ int main(void) {
     Texture2D texmap = LoadTexture("resources/textures/texmap.png");
 
     // Setup the shaders
-    Shader shader = LoadShader(
-        TextFormat("resources/shaders/fragment/base.vs", 
-        GLSL_VERSION), 
-        TextFormat("resources/shaders/fragment/world.fs", 
-        GLSL_VERSION)
-    );
-    shader.locs[SHADER_LOC_MATRIX_MODEL] = GetShaderLocation(shader, "matModel");
-    shader.locs[SHADER_LOC_VECTOR_VIEW] = GetShaderLocation(shader, "view");
+    renderer.InitShader(WORLD_SHADER, "resources/shaders/base.vs", "resources/shaders/world.fs");
+    renderer.InitShader(MODEL_SHADER, "resources/shaders/base.vs", "resources/shaders/model.fs");
+
+    // Set the inbuilt shader locations
+    renderer.shaders[WORLD_SHADER].SetInbuiltLoc(SHADER_LOC_MATRIX_MODEL, "matModel");
+    renderer.shaders[MODEL_SHADER].SetInbuiltLoc(SHADER_LOC_MATRIX_MODEL, "matModel");
     
     // All shader values
     float texsize = 31 / (float)texmap.width;
     float gridsize = 32 / (float)texmap.width;
     float texscale = 3;
 
-    // All shader value locations 
-    int texsize_loc = GetShaderLocation(shader, "texsize");
-    int gridsize_loc = GetShaderLocation(shader, "gridsize");
-    int texscale_loc = GetShaderLocation(shader, "texscale");
-    int fogcolor_loc = GetShaderLocation(shader, "fogColor");
-    int fogamount_loc = GetShaderLocation(shader, "fogAmount");
-
     // Initial shader value set
-    SetShaderValue(shader, texsize_loc, &texsize, SHADER_UNIFORM_FLOAT);
-    SetShaderValue(shader, gridsize_loc, &gridsize, SHADER_UNIFORM_FLOAT);
-    SetShaderValue(shader, texscale_loc, &texscale, SHADER_UNIFORM_FLOAT);
-    SetShaderValue(shader, fogcolor_loc, &fogColor, SHADER_UNIFORM_VEC3);
-    SetShaderValue(shader, fogamount_loc, &fogAmount, SHADER_UNIFORM_FLOAT);
+    renderer.shaders[WORLD_SHADER]("texsize", &texsize, SHADER_UNIFORM_FLOAT);
+    renderer.shaders[WORLD_SHADER]("gridsize", &gridsize, SHADER_UNIFORM_FLOAT);
+    renderer.shaders[WORLD_SHADER]("texscale", &texscale, SHADER_UNIFORM_FLOAT);
+    renderer.shaders[WORLD_SHADER]("fogColor", &fogColor, SHADER_UNIFORM_VEC3);
+    renderer.shaders[MODEL_SHADER]("fogColor", &fogColor, SHADER_UNIFORM_VEC3);
+    renderer.shaders[WORLD_SHADER]("fogAmount", &fogAmount, SHADER_UNIFORM_FLOAT);
+    renderer.shaders[MODEL_SHADER]("fogAmount", &fogAmount, SHADER_UNIFORM_FLOAT);
 
     // Initialise the lights manager
-    light_manager = LightManager(&shader);
+    light_manager = LightManager(&renderer);
     light_manager.CreateLight(
-        1.5,
-        {0, 0, 0}
+        1,
+        {0, -1.4f, 0}
     );
 
     light_manager.CreateLight(
@@ -90,54 +89,26 @@ int main(void) {
     );
 
     Model model = LoadModel("resources/models/start_room.obj");
-    model.materials[0].shader = shader;                     // Set shader effect to 3d model
+    model.materials[0].shader = renderer.shaders[WORLD_SHADER].shader; // Set shader effect to 3d model
     model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = texmap;
 
     Model gun = LoadModel("resources/models/rifle.obj");
-    gun.materials[0].shader = shader;
-    gun.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = texmap;
+    gun.materials[0].shader = renderer.shaders[MODEL_SHADER].shader;
 
     while(!WindowShouldClose()) {
-        player.Update();
+        
 
-        SetShaderValue(shader, shader.locs[SHADER_LOC_VECTOR_VIEW], &player.position, SHADER_UNIFORM_VEC3);
+        renderer.shaders[WORLD_SHADER]("view", &player.position, SHADER_UNIFORM_VEC3);
+        renderer.shaders[MODEL_SHADER]("view", &player.position, SHADER_UNIFORM_VEC3);
 
         renderer.BeginRender();
         {
             BeginMode3D(player.camera); 
             {
-                gun.transform = MatrixRotateXYZ((Vector3){0, player.gun_rotation.x, player.gun_rotation.y});
-                DrawModel(gun, player.gun_position, 0.2, WHITE);
+                gun.transform = MatrixRotateXYZ((Vector3){0, player.gun_rotation.x-player.input_axis.x / 20, player.gun_rotation.y});
+                DrawModel(gun, player.gun_position, 0.1, WHITE);
 
                 DrawModel(model, {0,-5,0}, 1, WHITE);
-
-                player.grounded = false;
-                for(GenericBounds b : collision_map.bounds) {
-                    // Don't check if far away
-                    if(Distance(ExcludeY(player.position), ExcludeY(GetCenter(b))) > Distance(ExcludeY(b.min), ExcludeY(b.max))) continue;
-
-                    // Draw wireframe if in debug mode
-                    if(DEBUG) DrawGenericBounds(b, RED);
-
-                    if(CheckCollisionBounds(player.feet, b)) {
-                        player.grounded = true;
-                        if(b.max.y > b.min.y)
-                            player.position.y = b.max.y + 0.101f;
-                        else
-                            player.position.y = b.min.y + 0.101f;
-                    }
-                    else if(CheckCollisionBounds(player.bounds, b)) {
-                        if(b.type == 1)
-                            player.OnCollide(GetWallCollide(
-                                player.bounds, {b.min, b.max}
-                            ));
-                        else
-                            player.OnCollide({b.min, b.max});
-                    }
-                }
-                
-                
-
             }
 
             EndMode3D();
@@ -154,6 +125,30 @@ int main(void) {
 
         }
         renderer.StopRender();
+
+        player.Update();
+
+        player.grounded = false;
+        for(GenericBounds b : collision_map.bounds) {
+            // Don't check if far away
+            if(Distance(ExcludeY(player.position), ExcludeY(GetCenter(b))) > Distance(ExcludeY(b.min), ExcludeY(b.max))) continue;
+
+            if(CheckCollisionBounds(player.feet, b)) {
+                player.grounded = true;
+                if(b.max.y > b.min.y)
+                    player.position.y = b.max.y + 0.1f;
+                else
+                    player.position.y = b.min.y + 0.1f;
+            }
+            else if(CheckCollisionBounds(player.bounds, b)) {
+                if(b.type == 1)
+                    player.OnCollide(GetWallCollide(
+                        player.bounds, {b.min, b.max}
+                    ));
+                else
+                    player.OnCollide({b.min, b.max});
+            }
+        }
         
         if(IsKeyDown(KEY_F1))
             collision_map = CollisionMap("resources/world/collision/start.cmap");
