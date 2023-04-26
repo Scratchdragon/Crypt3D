@@ -1,3 +1,7 @@
+#pragma once
+
+#define GLSL_VERSION 100
+
 #include <raylib.h>
 #include <iostream>
 #include <map>

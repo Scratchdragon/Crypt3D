@@ -1,36 +1,33 @@
-#define GLSL_VERSION 100
-
+// Non-standard raylib libraries
 #include <raylib.h>
 #include <raymath.h>
 
+// Standard libraries
 #include <math.h>
 #include <vector>
 
-#include "render/renderer.cpp"
-#include "player/player.cpp"
-#include "render/lights.cpp"
-#include "world/collision.cpp"
+// Local imports
+#include "render/Renderer.cpp"
+#include "player/Player.cpp"
+#include "render/LightManager.cpp"
+#include "world/CollisionMap.cpp"
+#include "object/GameObject.cpp"
 
-// Constant shader macros
+// Limit GLSL version to 100
+#define GLSL_VERSION 100
+
+// Shader locations constants
 #define SHADER_COUNT 2
 #define WORLD_SHADER 0
 #define MODEL_SHADER 1
 
-Camera3D camera;
-Renderer renderer;
-Player player;
-LightManager light_manager;
-
-CollisionMap collision_map;
-
-Vector3 fogColor = {0.7f, 0.5f, 0.5f};
-float fogAmount = 0;
-
-float r = 0;
+// Global shader values
+Vector3 fog_color = {0.7f, 0.5f, 0.5f};
+float fog_amount = 0;
 
 int main(void) {
     // Initialise the renderer
-    renderer = Renderer(
+    Renderer renderer = Renderer(
         {1920, 1080},
         "Crypt 3D",
         BLACK,
@@ -41,10 +38,10 @@ int main(void) {
     SetTargetFPS(120);
 
     // Initialise the player
-    player = Player({0, 10, 0.1});
+    Player player = Player({0, 10, 0.1});
 
     // Create the collision map
-    collision_map = CollisionMap("resources/world/collision/start.cmap");
+    CollisionMap collision_map = CollisionMap("resources/world/collision/start.cmap");
     
     // Load the world texture map
     Texture2D texmap = LoadTexture("resources/textures/texmap.png");
@@ -66,13 +63,13 @@ int main(void) {
     renderer.shaders[WORLD_SHADER]("texsize", &texsize, SHADER_UNIFORM_FLOAT);
     renderer.shaders[WORLD_SHADER]("gridsize", &gridsize, SHADER_UNIFORM_FLOAT);
     renderer.shaders[WORLD_SHADER]("texscale", &texscale, SHADER_UNIFORM_FLOAT);
-    renderer.shaders[WORLD_SHADER]("fogColor", &fogColor, SHADER_UNIFORM_VEC3);
-    renderer.shaders[MODEL_SHADER]("fogColor", &fogColor, SHADER_UNIFORM_VEC3);
-    renderer.shaders[WORLD_SHADER]("fogAmount", &fogAmount, SHADER_UNIFORM_FLOAT);
-    renderer.shaders[MODEL_SHADER]("fogAmount", &fogAmount, SHADER_UNIFORM_FLOAT);
+    renderer.shaders[WORLD_SHADER]("fogColor", &fog_color, SHADER_UNIFORM_VEC3);
+    renderer.shaders[MODEL_SHADER]("fogColor", &fog_color, SHADER_UNIFORM_VEC3);
+    renderer.shaders[WORLD_SHADER]("fogAmount", &fog_amount, SHADER_UNIFORM_FLOAT);
+    renderer.shaders[MODEL_SHADER]("fogAmount", &fog_amount, SHADER_UNIFORM_FLOAT);
 
     // Initialise the lights manager
-    light_manager = LightManager(&renderer);
+    LightManager light_manager = LightManager(&renderer);
     light_manager.CreateLight(
         1,
         {0, -1.4f, 0}
@@ -96,8 +93,6 @@ int main(void) {
     gun.materials[0].shader = renderer.shaders[MODEL_SHADER].shader;
 
     while(!WindowShouldClose()) {
-        
-
         renderer.shaders[WORLD_SHADER]("view", &player.position, SHADER_UNIFORM_VEC3);
         renderer.shaders[MODEL_SHADER]("view", &player.position, SHADER_UNIFORM_VEC3);
 

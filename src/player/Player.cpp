@@ -20,6 +20,7 @@ class Player {
     float friction = 10;
     float jump = 5;
     float speed = 1;
+    float sensitivity = 50;
 
     bool grounded;
 
@@ -105,8 +106,8 @@ class Player {
             lerp(gun_rotation.y, rotation.y -input_axis.y / 20, 0.5)
         };
 
-        rotation.x -= GetMouseDelta().x / 100;
-        rotation.y -= GetMouseDelta().y / 100;
+        rotation.x -= GetMouseDelta().x * sensitivity / 10000;
+        rotation.y -= GetMouseDelta().y * sensitivity / 10000;
         
         if(rotation.y > PI/2.1)
             rotation.y = PI/2.1;

@@ -64,4 +64,12 @@ class LightManager {
             UpdateLight(i);
         }
     }
+
+    void Reset() {
+        for(int i = 0;i<light_count;++i) {
+            lights[i].active = 0;
+            UpdateLight(i);
+        }
+        light_count = 0;
+    }
 };

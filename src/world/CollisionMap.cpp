@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <iostream>
+#include <math.h>
 
 // How accurate wall collision should be
 float COLLISION_DEPTH = 200;
