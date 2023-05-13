@@ -1,3 +1,5 @@
+#pragma once
+
 // Simple lighting system
 #include <raylib.h>
 

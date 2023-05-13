@@ -54,6 +54,9 @@ class Renderer {
     // The dimensions of the renderer
     Vector2 resolution;
 
+    // The resolution scale
+    float pixelization = 1;
+
     // The size of the window
     int width, height;
 
@@ -80,7 +83,7 @@ class Renderer {
         this->width = resolution.x;
         this->height = resolution.y;
         
-        render = LoadRenderTexture(width, height);
+        render = LoadRenderTexture(width / pixelization, height / pixelization);
 
         this->veiwport = {0, 0, resolution.x, resolution.y};
 
@@ -126,10 +129,10 @@ class Renderer {
         DrawTexturePro(
             render.texture,
             {
-                veiwport.x,
-                veiwport.y,
-                veiwport.width,
-                -veiwport.height
+                veiwport.x / pixelization,
+                veiwport.y / pixelization,
+                veiwport.width / pixelization,
+                -veiwport.height / pixelization
             },
             {
                 0,

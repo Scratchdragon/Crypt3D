@@ -21,7 +21,7 @@ using namespace std;
 class GameObject {
     public:
     // Flags
-    const int collision_level = NO_COLLISION;
+    int collision_level = NO_COLLISION;
     
     // The name is per object while the type is per subclass
     string name;

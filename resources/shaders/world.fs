@@ -9,6 +9,7 @@ varying vec3 fragPosition;
 
 // Uniform texture samples
 uniform sampler2D texture0;
+uniform sampler2D texture1;
 
 // Tiling uniforms
 uniform float texsize;
@@ -37,6 +38,9 @@ void main() {
     for(int i = 0; i < lightc; ++i) {
         light += (1.0 / distance(fragPosition, lights[i].position)) * lights[i].brightness * lights[i].active;
     }
+    if(light >= 2.0) {
+        light = 2.0;
+    }
 
     // Texture map
     vec2 coord = mod(fixedTexCoord / texscale, texsize) 
@@ -45,7 +49,12 @@ void main() {
     float fogMix = 1.0/pow(distance(view, fragPosition) * fogAmount, 2.0);
 
     // Calculate final fragment color
-    gl_FragColor = vec4(
-        mix(fogColor, color, clamp(fogMix, 0.0, 1.0)) * light, 1.0
-    );
+    vec3 finalColor = mix(fogColor, color, clamp(fogMix, 0.0, 1.0)) * light;
+    vec3 grey = vec3((finalColor.r + finalColor.g + finalColor.b) / 3.0);
+    
+    // Limit the colors
+    float colors = 30.0;
+    vec4 colorCap = vec4(floor(grey * colors + 0.5) / colors, 1.0);
+
+    gl_FragColor = mix(vec4(finalColor, 1.0), colorCap, 0.4);
 }

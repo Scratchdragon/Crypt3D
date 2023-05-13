@@ -91,12 +91,14 @@ class ObjectManager {
             collision = false;
             GameObject * collide_obj;
 
+            GameObject player_obj;
+            player_obj.type = "Player";
+
             switch(objects[i].collision_level) {
                 // Player collision only checks collisions with the player
                 case PLAYER_COLLISION:
                     // Create dummy player object
-                    collide_obj = &GameObject();
-                    collide_obj->type = "Player";
+                    collide_obj = &player_obj;
 
                     // Check feet collider
                     collision = CheckCollisionBoxes(player->feet, objects[i].bounds);
@@ -135,8 +137,7 @@ class ObjectManager {
                     // Global collision also applies to the player
                     if(!collision) {
                         collision = CheckCollisionBoxes(player->bounds, objects[i].bounds);
-                        collide_obj = &GameObject();
-                        collide_obj->type = "Player";
+                        collide_obj = &player_obj;
                     }
                     break;
             }

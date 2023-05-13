@@ -1,3 +1,5 @@
+#pragma once
+
 #include <raylib.h>
 #include <math.h>
 
@@ -6,10 +8,6 @@
 #define DEBUG false
 
 using namespace std;
-
-float lerp(float a, float b, float f) {
-    return a * (1.0 - f) + (b * f);
-}
 
 class Player {
     private:
@@ -59,8 +57,8 @@ class Player {
         else if(grounded)
             velocity.y = 0;
 
-        input_axis.y = lerp(input_axis.y, IsKeyDown(KEY_W) - IsKeyDown(KEY_S), deltat * 8);
-        input_axis.x = lerp(input_axis.x, IsKeyDown(KEY_A) - IsKeyDown(KEY_D), deltat * 8);
+        input_axis.y = Lerp(input_axis.y, IsKeyDown(KEY_W) - IsKeyDown(KEY_S), deltat * 8);
+        input_axis.x = Lerp(input_axis.x, IsKeyDown(KEY_A) - IsKeyDown(KEY_D), deltat * 8);
 
         // Controls
         velocity.x += speed * sinf(rotation.x) * input_axis.y;
@@ -88,7 +86,7 @@ class Player {
             position.z + look.z
         };
 
-        gun_height = lerp(
+        gun_height = Lerp(
             gun_height,
             (sin(rotation.x) * sin(position.x * 2) + cos(rotation.x) * sin(position.z * 2))
             * Clamp(net_velocity, 0, 1) / 100 + 0.2f + Clamp(velocity.y / 200, -0.03, 0.1),
@@ -102,8 +100,8 @@ class Player {
         };
 
         gun_rotation = {
-            lerp(gun_rotation.x, rotation.x - (PI/2), 0.5), 
-            lerp(gun_rotation.y, rotation.y -input_axis.y / 20, 0.5)
+            Lerp(gun_rotation.x, rotation.x - (PI/2), 0.5), 
+            Lerp(gun_rotation.y, rotation.y -input_axis.y / 20, 0.5)
         };
 
         rotation.x -= GetMouseDelta().x * sensitivity / 10000;
@@ -167,5 +165,96 @@ class Player {
             velocity.y,
             (sinf(angle) * net_velocity + velocity.z) / 2.0f
         };
+    }
+
+    void OnCollide(Vector3 point) {
+        if(DEBUG) return;
+
+        // The center of the point (x and z only)
+        Vector2 center = {
+            point.x,
+            point.z
+        };
+   
+        // Calculate the direction away from the wall and the net velocity
+        float angle = atan2f(-center.y + position.z, -center.x + position.x); // tan-1(rise/run) == angle
+        net_velocity = sqrtf((velocity.x * velocity.x) + (velocity.z * velocity.z));
+
+        // Move in the calculated direction
+        position.x += cosf(angle) * net_velocity * deltat;
+        position.z += sinf(angle) * net_velocity * deltat;
+
+        velocity = {
+            (cosf(angle) * net_velocity + velocity.x) / 2.0f,
+            velocity.y,
+            (sinf(angle) * net_velocity + velocity.z) / 2.0f
+        };
+    }
+
+    void CheckCollision(Model model) {
+        grounded = false;
+
+        Ray collisionRay;
+        RayCollision rayCollision;
+
+        for(float angle = 0; angle < PI * 2; angle += PI / 8) {
+            // Check for walls
+            collisionRay = {
+                {
+                    position.x,
+                    position.y + 0.3f,
+                    position.z
+                },
+                {
+                    sinf(angle),
+                    0,
+                    cosf(angle)
+                }
+            };
+
+            rayCollision = GetRayCollisionMesh(collisionRay, model.meshes[0], model.transform);
+            if(rayCollision.distance <= 0.3f && rayCollision.hit)
+                OnCollide(rayCollision.point);
+
+            // Check for ground
+            collisionRay = {
+                {
+                    position.x + sinf(angle) * 0.15f,
+                    position.y,
+                    position.z + cosf(angle) * 0.15f
+                },
+                {
+                    0,
+                    -1,
+                    0
+                }
+            };
+
+            rayCollision = GetRayCollisionMesh(collisionRay, model.meshes[0], model.transform);
+            if(rayCollision.distance <= 0.3 && rayCollision.hit) {
+                grounded = true;
+
+                // Move up
+                if(rayCollision.distance < 0.29f)
+                    position.y = Lerp(position.y, rayCollision.point.y + 0.3f, deltat * 5);
+            }
+        }
+
+        // Check center of player if not grounded
+        if(!grounded) {
+            collisionRay = {
+                position,
+                {0, -1, 0}
+            };
+            rayCollision = GetRayCollisionMesh(collisionRay, model.meshes[0], model.transform);
+
+            if(rayCollision.distance <= 0.3 && rayCollision.hit) {
+                grounded = true;
+
+                // Move up
+                if(rayCollision.distance < 0.29f)
+                    position.y = Lerp(position.y, rayCollision.point.y + 0.3f, deltat * 5);
+            }
+        }
     }
 };
