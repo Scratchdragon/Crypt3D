@@ -1,6 +1,7 @@
 #pragma once
 
 #include <raylib.h>
+#include <raymath.h>
 #include <math.h>
 
 #include <iostream>
@@ -197,6 +198,9 @@ class Player {
         Ray collisionRay;
         RayCollision rayCollision;
 
+        // Add extra room for error when moving fast
+        float boundry = velocity.y < -10 ? -velocity.y * deltat : 0;
+
         for(float angle = 0; angle < PI * 2; angle += PI / 8) {
             // Check for walls
             collisionRay = {
@@ -231,11 +235,11 @@ class Player {
             };
 
             rayCollision = GetRayCollisionMesh(collisionRay, model.meshes[0], model.transform);
-            if(rayCollision.distance <= 0.3 && rayCollision.hit) {
+            if(rayCollision.distance <= 0.3 + boundry && rayCollision.hit) {
                 grounded = true;
 
                 // Move up
-                if(rayCollision.distance < 0.29f)
+                if(rayCollision.distance < 0.29 + boundry)
                     position.y = Lerp(position.y, rayCollision.point.y + 0.3f, deltat * 5);
             }
         }
@@ -248,11 +252,11 @@ class Player {
             };
             rayCollision = GetRayCollisionMesh(collisionRay, model.meshes[0], model.transform);
 
-            if(rayCollision.distance <= 0.3 && rayCollision.hit) {
+            if(rayCollision.distance <= 0.3 + boundry && rayCollision.hit) {
                 grounded = true;
 
                 // Move up
-                if(rayCollision.distance < 0.29f)
+                if(rayCollision.distance < 0.29f + boundry)
                     position.y = Lerp(position.y, rayCollision.point.y + 0.3f, deltat * 5);
             }
         }

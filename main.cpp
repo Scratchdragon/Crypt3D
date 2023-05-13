@@ -28,7 +28,7 @@ float fog_amount = 0;
 int main(void) {
     // Initialise the renderer
     Renderer renderer = Renderer(
-        {1920, 1080},
+        {1366, 768},
         "Crypt 3D",
         BLACK,
         SHADER_COUNT,
