@@ -38,9 +38,6 @@ void main() {
     for(int i = 0; i < lightc; ++i) {
         light += (1.0 / distance(fragPosition, lights[i].position)) * lights[i].brightness * lights[i].active;
     }
-    if(light >= 2.0) {
-        light = 2.0;
-    }
 
     // Texture map
     vec2 coord = mod(fixedTexCoord / texscale, texsize) 
@@ -56,5 +53,5 @@ void main() {
     float colors = 30.0;
     vec4 colorCap = vec4(floor(grey * colors + 0.5) / colors, 1.0);
 
-    gl_FragColor = mix(vec4(finalColor, 1.0), colorCap, 0.4);
+    gl_FragColor = mix(vec4(finalColor, 1.0), colorCap, 0.3);
 }

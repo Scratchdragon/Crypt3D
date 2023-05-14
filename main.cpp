@@ -82,7 +82,7 @@ int main(void) {
         {
             BeginMode3D(player.camera); 
             {
-                gun.transform = MatrixRotateXYZ((Vector3){0, player.gun_rotation.x-player.input_axis.x / 20, player.gun_rotation.y});
+                gun.transform = MatrixRotateXYZ((Vector3){0, player.gun_rotation.x - player.input_axis.x / 20, player.gun_rotation.y - 0.1});
                 DrawModel(gun, player.gun_position, 0.1, WHITE);
                 
                 world.Render();

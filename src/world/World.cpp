@@ -69,7 +69,7 @@ void World::Load(const char * filename) {
                 break;
             case 'L':
                 light_manager.CreateLight(
-                    stoi(tokens[1].c_str()),
+                    stof(tokens[1].c_str()),
                     position
                 );
                 break;

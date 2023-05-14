@@ -44,7 +44,7 @@ class LightManager {
         );
     }
 
-    void CreateLight(float brightness, Vector3 position) {
+    int CreateLight(float brightness, Vector3 position) {
         // Define the light
         Light light;
         light.active = 1;
@@ -59,6 +59,9 @@ class LightManager {
 
         // Initial update
         UpdateLight(light_count - 1);
+
+        // Return light index
+        return light_count - 1;
     }
 
     void Update() {
