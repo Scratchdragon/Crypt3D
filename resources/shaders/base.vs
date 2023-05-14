@@ -19,7 +19,7 @@ varying vec3 fragPosition;
 
 void main() {
     // Send vertex attributes to fragment shader
-    if(abs(vertexNormal.g) > 0.5f) {
+    if(abs(vertexNormal.g) > 0.5) {
         fixedTexCoord = vec2(
             vertexPosition.x,
             vertexPosition.z
@@ -36,5 +36,5 @@ void main() {
     fragTexCoord = vertexTexCoord;
 
     // Calculate final vertex position
-    gl_Position = mvp * vec4(vertexPosition, 1.0f);
+    gl_Position = mvp * vec4(vertexPosition, 1.0);
 }
