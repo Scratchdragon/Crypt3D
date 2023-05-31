@@ -68,7 +68,7 @@ class Player {
         velocity.x += speed * sinf(rotation.x + PI/2.0) * input_axis.x;
         velocity.z += speed * cosf(rotation.x + PI/2.0) * input_axis.x;
         if(IsKeyDown(KEY_LEFT_SHIFT)) {
-            velocity.y -= speed;
+            velocity.y = -jump;
         }
 
         // Calculate net horizontal velocity
@@ -113,12 +113,6 @@ class Player {
         if(rotation.y < -PI/2.1)
             rotation.y = -PI/2.1;
 
-        if(DEBUG) {
-            velocity.y /= 1 + friction;
-            if(IsKeyDown(KEY_SPACE))
-                velocity.y += speed;
-        };
-
         last_pos = position;
 
         velocity.x /= 1 + friction;
@@ -133,8 +127,8 @@ class Player {
         friction = grounded ? 0.15 : 0.01;
         speed = grounded ? 0.7 : 0.04;
 
-        if(position.y < -7)
-            position = {0, 5, 0};
+        if(position.y < -10)
+            position = {0, 20, 0};
 
         feet = {
             {position.x - 0.15f, position.y - 0.1f, position.z - 0.15f},
@@ -199,26 +193,31 @@ class Player {
         RayCollision rayCollision;
 
         // Add extra room for error when moving fast
-        float boundry = velocity.y < -10 ? -velocity.y * deltat : 0;
-
+        float boundry = velocity.y < -10 ? -velocity.y * deltat / 2 : 0;
+        
         for(float angle = 0; angle < PI * 2; angle += PI / 8) {
             // Check for walls
-            collisionRay = {
-                {
-                    position.x,
-                    position.y + 0.3f,
-                    position.z
-                },
-                {
-                    sinf(angle),
-                    0,
-                    cosf(angle)
-                }
-            };
+            for(float height = 0.15f; height < 1.3f; height += 0.1f) {
+                // Get the direction of movement
+                collisionRay = {
+                    {
+                        position.x,
+                        position.y + height,
+                        position.z
+                    },
+                    {
+                        cosf(angle),
+                        0,
+                        sinf(angle)
+                    }
+                };
 
-            rayCollision = GetRayCollisionMesh(collisionRay, model.meshes[0], model.transform);
-            if(rayCollision.distance <= 0.3f && rayCollision.hit)
-                OnCollide(rayCollision.point);
+                rayCollision = GetRayCollisionMesh(collisionRay, model.meshes[0], model.transform);
+                if(rayCollision.distance <= 0.3f && rayCollision.hit) {
+                    OnCollide(rayCollision.point);
+                    break;
+                }
+            }
 
             // Check for ground
             collisionRay = {
@@ -247,7 +246,7 @@ class Player {
         // Check center of player if not grounded
         if(!grounded) {
             collisionRay = {
-                position,
+                {position.x, position.y + 0.5f, position.z},
                 {0, -1, 0}
             };
             rayCollision = GetRayCollisionMesh(collisionRay, model.meshes[0], model.transform);
@@ -256,9 +255,20 @@ class Player {
                 grounded = true;
 
                 // Move up
-                if(rayCollision.distance < 0.29f + boundry)
+                if(rayCollision.distance < 0.29 + boundry)
                     position.y = Lerp(position.y, rayCollision.point.y + 0.3f, deltat * 5);
             }
+        }
+
+        // Check above player if jumping
+        if(velocity.y > 0) {
+            collisionRay = {
+                camera.position,
+                {0, 1, 0}
+            };
+            rayCollision = GetRayCollisionMesh(collisionRay, model.meshes[0], model.transform);
+            if(rayCollision.distance <= 0.1 && rayCollision.hit)
+                velocity.y = 0;
         }
     }
 };

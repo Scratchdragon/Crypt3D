@@ -2,9 +2,14 @@
 #include <vector>
 #include <algorithm>
 #include <map>
+#include <LuaCpp/LuaCpp.hpp>
 
 #include "object/GameObject.cpp"
 #include "player/Player.cpp"
+
+using namespace LuaCpp;
+using namespace LuaCpp::Registry;
+using namespace LuaCpp::Engine;
 
 using namespace std;
 

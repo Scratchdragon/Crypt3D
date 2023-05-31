@@ -74,11 +74,22 @@ class Renderer {
     char shader_count;
     
     // Main constructor
-    Renderer(Vector2 resolution, const char * title, Color bg, char shader_count, unsigned int config) {
+    Renderer(Vector2 resolution, const char * title, Color bg, char shader_count, unsigned int config, bool borderless = false) {
+        if(borderless) config = config | FLAG_WINDOW_UNDECORATED;
+
         SetConfigFlags(config);
         InitWindow(resolution.x, resolution.y, title);
 
         DisableCursor();
+
+        if(borderless) {
+            resolution = {
+                (float)GetScreenWidth(),
+                (float)GetScreenHeight()
+            };
+            SetWindowSize(resolution.x, resolution.y);
+            SetWindowMonitor(GetCurrentMonitor());
+        }
 
         this->width = resolution.x;
         this->height = resolution.y;

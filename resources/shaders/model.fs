@@ -26,6 +26,9 @@ struct Light {
 uniform Light lights[255];
 uniform int lightc;
 
+// Other uniforms
+uniform vec3 tint;
+
 void main() {
     // Lighting
     float light = 0.0;
@@ -41,11 +44,12 @@ void main() {
 
     // Calculate final fragment color
     vec3 finalColor = mix(fogColor, color, clamp(fogMix, 0.0, 1.0)) * light;
-    vec3 grey = vec3((finalColor.r + finalColor.g + finalColor.b) / 3.0);
-    
-    // Limit the colors
-    float colors = 10.0;
-    vec4 colorCap = vec4(floor(grey * colors + 0.5) / colors, 1.0);
+    float grey = (finalColor.r + finalColor.g + finalColor.b) / 3.0;
 
-    gl_FragColor = mix(vec4(finalColor, 1.0), colorCap, 0.15);
+    // Limit the colors
+    float colors = 30.0;
+    grey = floor(grey * colors + 0.5) / colors;
+    vec4 colorCap = vec4(tint * grey, 1.0);
+
+    gl_FragColor = mix(vec4(finalColor, 1.0), colorCap, 0.3);
 }
